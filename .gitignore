@@ -1,0 +1,9 @@
+
+.DS_Store
+models/rasa-demo/.DS_Store
+*.pyc
+.DS_Store
+models/.DS_Store
+models/__pycache__/_db.cpython-38.pyc
+models/rasa-demo/.DS_Store
+models/rasa-demo/models/.DS_Store

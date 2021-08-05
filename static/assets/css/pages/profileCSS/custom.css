@@ -155,6 +155,8 @@ button .purpleLabel2 {
 .purpleBtn{
     background-color: #5D478B; float: right; 
     border-radius: 5px; 
+    width: 150px;
+    height: 50px;
 }
 
 .purpleBtnInChatroom{

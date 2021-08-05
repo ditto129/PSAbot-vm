@@ -23,12 +23,14 @@ from flask_cors import CORS
 #import models
 from views import register_blueprint
 #from lib import config
-
+from os import urandom
+from models.PSAbotLoginManager import PSAbotLoginManager,UserModel
 
 
 def create_app():
     app = Flask(__name__)
     app.jinja_env.auto_reload = True
+    app.config['SECRET_KEY'] = urandom(24).hex()
     #app.config.from_object(config.Config())
     CORS(app)
     # models setup
@@ -37,7 +39,13 @@ def create_app():
     # security setup
 
    # Security(app, models.user.USER_DATASTORE,login_form=models.user.ExtendedLoginForm)
-
+    ''' --- login manager ---- '''
+    login_manager = PSAbotLoginManager(app)
+    @login_manager.user_loader
+    def user_loader(user_id):  
+        user_now = UserModel(user_id)   
+        return user_now
+    ''' ---------------------- '''
     # register app
     register_blueprint(app)
     return app

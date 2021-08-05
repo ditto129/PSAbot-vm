@@ -19,4 +19,3 @@ class Translate:
         data = json.load(request)
         return data['sentences'][0]['trans']
 
-

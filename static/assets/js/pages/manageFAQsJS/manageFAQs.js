@@ -7,11 +7,11 @@ function addFAQsData(){
     // 初始化 START
     answerNum = 0;
     document.getElementById("addFAQAnswerContent").innerHTML = "";
-//    language = [];
-//    children = [];
-//    chosenTags = [];
-//    allTags = {};
-//    getLanguageTag();
+    language = [];
+    children = [];
+    chosenTags = [];
+    allTags = {};
+    getLanguageTag();
     // 初始化 END
     $('#newFAQsData').modal('show');
 }
@@ -24,9 +24,9 @@ function addFAQAnswerNum(){
     
     var content = "";
     content += '<br>';
-    content += '回覆的分數：<input id="FAQAnswerScore';
-    content += answerNum;
-    content += '" class="addFAQsInput"><br>';
+//    content += '回覆的分數：<input id="FAQAnswerScore';
+//    content += answerNum;
+//    content += '" class="addFAQsInput"><br>';
     content += '回覆的內容：<br><textarea id="FAQAnswerContent';
     content += answerNum;
     content += '" class="addFAQsTextarea"></textarea><br>';
@@ -34,6 +34,7 @@ function addFAQAnswerNum(){
     content += answerNum;
     content += '\')">刪除此則回覆</button>';
     content += '<br>';
+    
     addFAQAnswerContent.appendChild(newAnswerDiv);
     document.getElementById(answerNum).innerHTML = content;
     answerNum += 1;
@@ -198,7 +199,7 @@ function getLanguageTag(){
 function showLanguageTag(){
     localStorage.setItem("chooseTags", 0);
     // 標題 START
-    document.getElementById("addFAQTags").innerHTML = "選擇相關標籤<br>";
+//    document.getElementById("addFAQTags").innerHTML = "選擇相關標籤<br>";
     // 標題 END
     
     var content = "";
@@ -268,25 +269,43 @@ function saveFAQByHand(){
     var children = $("#addFAQAnswerContent").children();
     for(var i=0; i<children.length; i++){
         console.log(children[i].id);
-        var score = $("#FAQAnswerScore"+children[i].id).val();
+//        var score = $("#FAQAnswerScore"+children[i].id).val();
         var content = $("#FAQAnswerContent"+children[i].id).val();
         
-        FAQAnswers.push({score: score, content: content});
+        FAQAnswers.push({content: content});
     }
     
-//    var tag = [];
-//    for(var i=0; i<chosenTags.length; i++){
-//        var temp = {"tag_id": chosenTags[i], "tag_name": allTags[chosenTags[i]]};
-//        tag.push(temp);
-//    }
+    var tag = [];
+    for(var i=0; i<chosenTags.length; i++){
+        var temp = {"tag_id": chosenTags[i], "tag_name": allTags[chosenTags[i]]};
+        tag.push(temp);
+    }
     
     var time = new Date().toJSON();
     time = time.slice(0, 23);
     
-    var data = {link: dataURL, title: FAQTitle, content: FAQContent, answers: FAQAnswers, time: time};
-//    var data = {link: dataURL, title: FAQTitle, content: FAQContent, answers: FAQAnswers, tags: tag, time: time};
+//    var data = {link: dataURL, question: {title: FAQTitle, content: FAQContent}, answers: FAQAnswers, time: time};
+    var data = {link: dataURL, question: {title: FAQTitle, content: FAQContent}, answers: FAQAnswers, tags: tag};
     console.log("Data: ");
     console.log(data);
+
+    var myURL = head_url + "insert_faq_post";
+    $.ajax({
+        url: myURL,
+        type: "POST",
+        data: JSON.stringify(data),
+        async: false,
+        dataType: "json",
+        contentType: 'application/json; charset=utf-8',
+        success: function(response){
+            console.log("成功: 編輯貼文（insert_faq_post）");
+            console.log(response);
+        },
+        error: function(response){
+            console.log("失敗: 編輯貼文（insert_faq_post）");
+            console.log(response);
+        }
+    });
 }
 
 ///////////////// 手動新增 END /////////////////

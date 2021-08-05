@@ -1,5 +1,23 @@
 function start(){
-    
+    var myURL = head_url + "query_faq_update";
+    $.ajax({
+        url: myURL,
+        type: "POST",
+        data: JSON.stringify(null),
+        async: false,
+        dataType: "json",
+        contentType: 'application/json; charset=utf-8',
+        success: function(response){
+            console.log("成功: FAQ數據（query_faq_update）");
+            console.log(response);
+            $("#dataNum").val(response.data_number);
+            $("#dataCycle").val(response.update_cycle);
+        },
+        error: function(response){
+            console.log("失敗: FAQ數據（query_faq_update）");
+            console.log(response);
+        }
+    });
 }
 
 function save(){

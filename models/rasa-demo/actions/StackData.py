@@ -1,65 +1,45 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Apr 28 16:29:09 2021
-
-@author: shauangel
-"""
-
 from stackapi import StackAPI
 from urllib.parse import urlparse, unquote
 from pathlib import PurePosixPath
 from bs4 import BeautifulSoup
-import json
+#import json
 
 #存放stackoverflow的post資料
 #包含取得資料的函式
 class StackData:
-    def __init__(self, url):
+    def __init__(self, question, answers):
         #取得問題id
-        self.id = PurePosixPath(urlparse(unquote(url)).path).parts[2]
-        self.link = url
-        #設定stackAPI工具
-        self.site = StackAPI('stackoverflow')
-        self.site.page_size = 10
-        self.site.max_pages = 1
-        self.question, self.bestAnsID = self.__getQuestion()
-        self.answers = self.__getAnswers(self.id)
+        self.id = question['question_id']
+        self.link = question['link']
+        self.question, self.bestAnsID = self.__getQuestion(question)
+        self.answers = self.__getAnswers(answers)
     
     #private method: 取得問題資訊
-    def __getQuestion(self):
-        data = self.site.fetch('questions', filter='withbody', ids=[self.id])['items'][0]
-        comments = self.__getComments('questions/{ids}/comments', [self.id])
+    def __getQuestion(self, q):
         result = {
-                "id" : self.id,
-                "title" : data['title'], 
-                "content" : self.__addClass2Code(data['body']), 
-                "abstract" : self.__getPureText(data['body']), 
-                "comments" : comments
-                }
-        if 'accepted_answer_id' in data.keys():
-            return result, data['accepted_answer_id']
+            "id" : q['question_id'],
+            "title" : q['title'],
+            "content" : self.__addClass2Code(q['body']),
+            "abstract" : self.__getPureText(q['body']),
+            "view_count" : q['view_count'],
+            "web_score" : q['score']
+            }
+        if 'accepted_answer_id' in q.keys():
+            return result, q['accepted_answer_id']
         else:
             return result, ""
     
     #private method: 取得答案資訊, 最佳解&其他解
-    def __getAnswers(self, ids):
-        data = self.site.fetch('questions/{ids}/answers', filter='withbody', ids=[ids], sort='votes', order='desc')['items']
+    def __getAnswers(self, answers):
         result = []
-        for ans in data:
-            comments = self.__getComments('answers/{ids}/comments', [ans['answer_id']])
+        for ans in answers:
             result.append({
-                    "id" : ans['answer_id'],
-                    "score" : ans['score'],
-                    "content" : self.__addClass2Code(ans['body']),
-                    "abstract" : self.__getPureText(ans['body']),
-                    "comments" : comments
-                    })
-        return result
-    #private method: 取得該區塊留言
-    def __getComments(self, query, ids):
-        data = self.site.fetch(query, filter='withbody', sort='votes', ids=ids)
-        result = [ i['body'] for i in data['items'] ]
+                          "id" : ans['answer_id'],
+                          "score" : ans['score'],
+                          "content" : self.__addClass2Code(ans['body']),
+                          "abstract" : self.__getPureText(ans['body']),
+                          })
         return result
     
     def __getPureText(self, html):
@@ -79,35 +59,53 @@ class StackData:
                 p.replaceWith(p)
             except:
                 continue
-            
-        return str(soup)
     
+        return str(soup)
+
     def showData(self):
         display = {
-                "link" : self.link,
+            "link" : self.link,
                 "question" : self.question,
                 "answers" : self.answers
-                }
+            }
         return display
-    
-    def insertDB(self):
-        return
-    
-    
-    
-    
-if __name__ == "__main__":
-    url = "https://stackoverflow.com/questions/231767/what-does-the-yield-keyword-do"
-    test = StackData(url)
-    d = test.showData()
-    for k in d:
-        print(k + ": ")
-        print(d[k])
-        
-    with open('test.json', 'w', encoding='utf-8') as f:
-        json.dump(d, f)
-    
-    
-    
-    
+
+
+def parseStackData(url_list):
+    site = StackAPI('stackoverflow')
+    site.page_size = 10
+    site.max_pages = 1
+    ##prepare query id
+    query_ids = []
+    for url in url_list:
+        try:
+            url_id = PurePosixPath(urlparse(unquote(url)).path).parts[2]
+            query_ids.append(url_id)
+        except:
+            continue
+        if len(query_ids) > 5:
+            break
+    question = site.fetch('questions', filter='withbody', ids=query_ids)['items']
+    answers = site.fetch('questions/{ids}/answers', filter='withbody', ids=query_ids, sort='votes', order='desc')['items']
+    print(question[0])
+    ctg_ans = {}
+    for ans in answers:
+        if ans['question_id'] in ctg_ans:
+            ctg_ans[ans['question_id']].append(ans)
+        else:
+            ctg_ans[ans['question_id']] = [ans]
+    stack_items = []
+    for q in question:
+        try:
+            temp = StackData(q, ctg_ans[q['question_id']]).showData()
+            stack_items.append(temp)
+        except:
+            continue
+    return stack_items
+
+
+
+
+
+
 

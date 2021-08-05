@@ -22,12 +22,15 @@ def base_flow_rasa():
     
     conversations_tracker = requests.get('http://localhost:5005/conversations/'+sender_id+'/tracker')
     results = json.loads(conversations_tracker.content.decode('utf8'))
+#    print(results)
     #若為輸入描述問題 or 錯誤訊息的流程，則加入 question_or_error_message 前綴以填入整句話當 slot
     if len(results['events'])>=2:
-        print(results['events'][-2]['text'])
-        lastest_bot_reply=results['events'][-2]['text']
-        if lastest_bot_reply == "請描述您遇到的問題" or lastest_bot_reply == "請貼上您的錯誤訊息":
-            message = 'question_or_error_message, ' + message
+        if 'text' in results['events'][-2].keys():
+            #print(results['events'][-2]['text'])
+            lastest_bot_reply=results['events'][-2]['text']
+            if lastest_bot_reply == "請描述您遇到的問題" or lastest_bot_reply == "請貼上您的錯誤訊息":
+                message = 'question_or_error_message, ' + message
+                #print(message)
         
     payload = {'sender': sender_id, 'message': message}
     headers = {'content-type': 'application/json'}
